@@ -1,4 +1,59 @@
+# Ignore everything by default
+*
+
+# But don't ignore directories (so Git can recurse into them)
+!*/
+
+#---------------------------------------------------------------------
+# Always allowed (any folder)
+#---------------------------------------------------------------------
+!.gitignore
+!.gitkeep
+!README.md
+
+#---------------------------------------------------------------------
+# VS Code Setup Files
+#---------------------------------------------------------------------
+!.vscode/**
+!setup/**
+
+#---------------------------------------------------------------------
+# CODE — track all code files
+#---------------------------------------------------------------------
+!code/**
+
+#---------------------------------------------------------------------
+# DOCS — track everything
+#---------------------------------------------------------------------
+!docs/**
+
+#---------------------------------------------------------------------
+# DATA — track nothing by default; allow only codebooks
+#---------------------------------------------------------------------
+# only jw datasets 
+!code/jw_datasets/**
+
+#---------------------------------------------------------------------
+# OUTPUT — track figures and tables, ignore logs
+#---------------------------------------------------------------------
+!output/figures/**/*.pdf
+!output/figures/**/*.png
+!output/figures/**/*.svg
+!output/figures/**/*.eps
+
+!output/tables/**/*.tex
+!output/tables/**/*.csv
+!output/tables/**/*.xlsx
+!output/tables/**/*.md
+
+!output/notebooks/**/*.html
+!output/notebooks/**/*.ipynb
+!output/notebooks/**/*.qmd
+!output/notebooks/**/*.md
+
+# logs stay ignored (no allow rules)
+
+# exclude temp files
 **/tempCodeRunnerFile.do
-**/.Rhistory
-**/.stswp
-*.stswp
+**/*.tmp
+**/~$*
