@@ -5,7 +5,8 @@ This GitHub repository holds code and data unrelated to specific assignments. Se
 ```text
 ss368-fall-2026/classroom-materials
 ├── README.md
-├── docs/                            Data dictionaries, codebooks, etc.
+├── docs/
+│   └── runstata_vscode/             Stata hotkey files for VS Code — see 2D. Stata Hotkeys in VS Code
 ├── code/
 │   ├── 01_lln_clt_demo.do           LLN and CLT visualizations
 │   ├── 02_hypothesis_testing.do     t-tests, p-values, confidence intervals
@@ -58,10 +59,12 @@ In the Extensions sidebar icon, install:
 
 ### 2D. Stata Hotkeys in VS Code
 
-This sets up keyboard shortcuts that send Stata code from a `.do` file in VS Code directly to an open Stata window.
+This sets up keyboard shortcuts that send Stata code from a `.do` file in VS Code directly to an open Stata window. This step is **required**, not optional — you need these hotkeys to run Stata code from VS Code for the rest of the semester.
 
-1. Copy the `runstata_vscode` folder to `C:\`. To find your `C` drive, open File Explorer > navigate to `This PC` and double-click on `Windows (C:)`. 
-2. In VS Code, open a new PowerShell terminal and run:
+The files you need are in this repository, at [`docs/runstata_vscode`](docs/runstata_vscode).
+
+1. Copy the `docs/runstata_vscode` folder from this repository to `C:\`. To find your `C` drive, open File Explorer > navigate to `This PC` and double-click on `Windows (C:)`. 
+2. In VS Code, open a new PowerShell terminal (top ribbon > Terminal > New Terminal) and run (paste + enter):
    ```powershell
    cd "C:\runstata_vscode"; .\startup.ps1
    ```
