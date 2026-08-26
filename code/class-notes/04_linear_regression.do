@@ -191,6 +191,23 @@ save `raw_data'
 * SAMPLING VARIANCE VISUALS
 *--------------------------------------
 
+ *** formatting labels: horizontal axis
+local xmax = 12
+local xmin = 4
+local xskip = 1
+local xmskip = `xskip'/2
+
+qui mylabels `xmin'(`xskip')`xmax', myscale(@) local(xlabels) 
+qui mylabels `xmin'(`xmskip')`xmax', myscale(@) local(xmlabels) 
+
+*** formatting labels: vertical axis
+local ymax = 1.4
+local ymin = 0
+local yskip = 0.2
+local ymskip = `yskip'/2
+qui mylabels `ymin'(`yskip')`ymax', myscale(@) local(ylabels)
+qui mylabels `ymin'(`ymskip')`ymax', myscale(@) local(ymlabels) 
+
 local num_samples = 10000
 
 foreach sample_size in 1000 5000 {
@@ -226,7 +243,7 @@ foreach sample_size in 1000 5000 {
 		local f_pop_beta = string(round(`pop_beta',.001), "%09.3fc")
 		local f_sample_size = string(`sample_size', "%9.0fc")
 		local f_num_samples = string(`num_samples', "%9.0fc")
-		twoway histogram beta1, density color(gs8) gap(10) ||, title("Distribution of Estimates Across Samples") subtitle("N = `f_sample_size', Samples = `f_num_samples'") ylabel(, angle(0)) xtitle("Beta Estimates") ytitle("Density") legend(off) graphregion(color(white)) caption("Population Beta: `f_pop_beta'" "Avg. Beta Across Samples: `f_e_beta1'")
+		twoway histogram beta1, density color(gs8) gap(10) ||, title("Distribution of Estimates Across Samples") subtitle("N = `f_sample_size', Samples = `f_num_samples'") ylabel(`ylabels', angle(0)) ymtick(`ymlabels') xtitle("Beta Estimates") xlabel(`xlabels') xmtick(`xmlabels') ytitle("Density") legend(off) graphregion(color(white)) caption("Population Beta: `f_pop_beta'" "Avg. Beta Across Samples: `f_e_beta1'")
 		qui graph export "${output}/figures/sampling_variation_ex_`num_samples'_samples_size_`sample_size'.svg", width(1600) fontface("Times New Roman") replace
 }
 
