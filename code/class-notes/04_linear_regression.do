@@ -24,7 +24,7 @@ qui cap log close linear_regression
 log using "${logs}/linear_regression.log", text replace name(linear_regression)
 
 *--------------------------------------
-* MANUALLY CALCULATE COEFFICIENT ESTIMATES 
+* MANUALLY CALCULATE COEFFICIENT ESTIMATES - EXAMPLE NO. 1
 *--------------------------------------
 
 use "https://raw.githubusercontent.com/ss368-fall-2026/classroom-materials/main/data/jw_datasets/WAGE1.DTA", clear
@@ -116,6 +116,85 @@ qui graph export "${output}/figures/scatter_wage_educ.svg", width(1600) fontface
 * make scatterplot of wage and education - with line of best fit 
 twoway scatter wage educ, mcolor(gs8) msize(tiny) || lfit wage educ, lcolor(red) ||, title("Line of Best Fit") ytitle("Avg. Hourly Earnings") ylabel(`ylabels', angle(0)) ymtick(`ymlabels') xtitle("Years of Education") xlabel(`xlabels') xmtick(`xmlabels') xline(0, lcolor(black) lpattern(dash)) legend(off) graphregion(color(white))
 qui graph export "${output}/figures/scatter_wage_educ_reg_line.svg", width(1600) fontface("Times New Roman") replace
+
+*--------------------------------------
+* MANUALLY CALCULATE COEFFICIENT ESTIMATES - EXAMPLE NO. 2
+*--------------------------------------
+
+use "https://raw.githubusercontent.com/ss368-fall-2026/classroom-materials/main/data/jw_datasets/charity.dta", clear
+
+* calc. covariance 
+corr mailsyear gift, cov
+*** store as a local macro to use later 
+local covariance = `r(cov_12)'
+
+*** calc. mean and variance of mailsyearation
+sum mailsyear,d
+local mean_mailsyear = `r(mean)'
+local variance_mailsyear = `r(Var)'
+
+*** calc. mean of gift
+qui sum gift
+local mean_gift = `r(mean)'
+
+* manually calculate beta_hat and intercept
+
+*** beta_hat = cov(mailsyear, gift)/var(mailsyear)
+local beta_hat = `covariance'/`variance_mailsyear'
+
+*** formatting for display purposes 
+local f_beta_hat = string(round(`covariance'/`variance_mailsyear', .001),"%9.3fc")
+di "Slope Coefficient (Beta Hat): `f_beta_hat'"
+
+*** intercept = (mn of gift) - `beta_hat'*(mean of mailsyear)
+local intercept = `mean_gift'-`beta_hat'*`mean_mailsyear'
+
+*** formatting for display purposes 
+local f_intercept = string(round(`mean_gift'-`beta_hat'*`mean_mailsyear', .001),"%9.3fc")
+di "Intercept: `f_intercept'"
+
+* calc. the residuals/prediction errors (u_hat)
+gen u_hat = gift - `intercept' - `beta_hat'*mailsyear 
+
+* calc. the sum of squared residuals (SSR)
+egen ssr = total(u_hat^2)
+
+* calc. the std. error of the slope coefficient 
+*** get number of observations 
+qui count 
+local N = `r(N)'
+
+*** est. the population variance using the residuals  
+local pop_variance_est = (1/(`N'-2))*ssr
+
+*** get the standard deviation of indep. var.
+qui sum mailsyear
+local sd_mailsyear = `r(sd)'
+
+local se_beta_hat = sqrt(1/(`N'-1))*sqrt(`pop_variance_est')/`sd_mailsyear'
+local f_se_beta_hat = string(round(`se_beta_hat', .001),"%9.3fc")
+di "Standard Error (Beta Hat): `f_se_beta_hat'"
+
+* calc. the R-squared 
+
+*** calculate the sum of squares total (SST)
+egen sst = total((gift - `mean_gift')^2)
+
+*** calc. R-squared: 1 - (ssr/sst)
+local r2 = 1-(ssr/sst)
+local f_r2 = string(round(`r2', .001),"%9.3fc")
+
+di "R-squared: `f_r2'"
+
+di "Summary"
+di "Slope Coefficient (Beta Hat): `f_beta_hat'"
+di "Standard Error (Beta Hat): `f_se_beta_hat'"
+di "Intercept: `f_intercept'"
+di "R-squared: `f_r2'"
+
+* check against built-in regression function 
+reg gift mailsyear
+*** everything checks 
 
 *--------------------------------------
 * GENERATE DATA
