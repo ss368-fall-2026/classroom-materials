@@ -51,7 +51,8 @@
 !output/notebooks/**/*.qmd
 !output/notebooks/**/*.md
 
-# logs stay ignored (no allow rules)
+# logs
+!output/logs/**/*.log
 
 # exclude temp files
 **/tempCodeRunnerFile.do
