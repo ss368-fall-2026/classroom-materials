@@ -18,7 +18,7 @@ global main "C:\Users\michael.baker\Documents\ss368\ss368-fall2026\classroom-mat
 cd "${main}"
 
 global output  "${main}/output"
-global logs    "${output}/logs"   
+global logs    "${output}/figures/logs"   
 
 qui cap log close hypothesis_testing
 log using "${logs}/hypothesis_testing.log", text replace name(hypothesis_testing)
@@ -136,7 +136,7 @@ twoway
     ymtick(`ymlabels')
     legend(off) 
     graphregion(color(white));
-    graph export "${output}/ttest_practice_cdf.svg", width(1600) fontface("Times New Roman") replace;
+    graph export "${output}/figures/ttest_practice_cdf.svg", width(1600) fontface("Times New Roman") replace;
 #delimit cr 
 
 * PDF 
@@ -176,7 +176,7 @@ twoway
     ymtick(`ymlabels')
     legend(off) 
     graphregion(color(white));
-    graph export "${output}/ttest_practice_pdf.svg", width(1600) fontface("Times New Roman") replace;
+    graph export "${output}/figures/ttest_practice_pdf.svg", width(1600) fontface("Times New Roman") replace;
 #delimit cr 
 
 * 95% confidence interval 
@@ -208,7 +208,7 @@ twoway
     xtitle("")
     xlabels("")
     legend(off); 
-    graph export "${output}/confidence_interval_practice.svg", width(1600) fontface("Times New Roman") replace;
+    graph export "${output}/figures/confidence_interval_practice.svg", width(1600) fontface("Times New Roman") replace;
 #delimit cr 
 
 log close hypothesis_testing

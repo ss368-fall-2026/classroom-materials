@@ -76,7 +76,7 @@ ylabels(`ylabels',angle(0) glcolor(dimgray) glpattern(dash))
 ymtick(`ymlabels')
 legend(label(1 "t, df=10") label(2 "t, df=20") label(3 "t, df=50") label(4 "t, df=200") symxsize(*0.5) symysize(*0.5) row(1) position(6)) 
 graphregion(color(white));
-graph export "output/t_cdf.svg", width(1600) fontface("Times New Roman") replace;
+graph export "${output}/figures/t_cdf.svg", width(1600) fontface("Times New Roman") replace;
 #delimit cr 
 
 * PLOT PDF
@@ -111,7 +111,7 @@ ylabels(`ylabels',angle(0) glcolor(dimgray) glpattern(dash))
 ymtick(`ymlabels')
 legend(label(1 "t, df=10") label(2 "t, df=20") label(3 "t, df=50") label(4 "t, df=200") symxsize(*0.5) symysize(*0.5) row(1) position(6)) 
 graphregion(color(white));
-graph export "output/t_pdf.svg", width(1600) fontface("Times New Roman") replace;
+graph export "${output}/figures/t_pdf.svg", width(1600) fontface("Times New Roman") replace;
 #delimit cr 
 
 *---------------------------------------------
@@ -136,7 +136,7 @@ ylabels(`ylabels',angle(0) glcolor(dimgray) glpattern(dash))
 ymtick(`ymlabels')
 legend(label(1 "t, df=10") label(2 "t, df=20") label(3 "t, df=50") label(4 "t, df=200") label(5 "z") symxsize(*0.5) symysize(*0.5) row(1) position(6)) 
 graphregion(color(white));
-graph export "output/t_pdf_w_normal.svg", width(1600) fontface("Times New Roman") replace;
+graph export "${output}/figures/t_pdf_w_normal.svg", width(1600) fontface("Times New Roman") replace;
 #delimit cr 
 
 log close t_distribution
