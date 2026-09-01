@@ -1,0 +1,185 @@
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  two_sample_ttest
+       log:  C:\Users\michael.baker\Documents\ss368\ss368-fall2026\classroom-materials/output/logs/two_sample_ttest.log
+  log type:  text
+ opened on:   1 Sep 2026, 08:49:16
+
+. 
+. *--------------------------------------------------
+. * T-TEST - DIFFERENCE IN SAMPLE MEANS
+. *--------------------------------------------------
+. * ref: p. 409-410 in Casella and Berger
+. 
+. use "https://raw.githubusercontent.com/ss368-fall-2026/classroom-materials/main/data/jw_datasets/SMOKE.DTA", clear 
+
+. 
+. *-----------------------------
+. * NOT ASSUMING EQUAL VARIANCE
+. *-----------------------------
+. 
+. * MANUAL CALCULATIONS 
+. gen smc = educ>12 
+
+. gen hs = educ==12 
+
+. 
+. drop if !smc & !hs 
+(223 observations deleted)
+
+. 
+. gen smoke = cigs>0
+
+. 
+. * calculate t-statistic 
+. qui sum smoke if smc 
+
+. local mn_smc = `r(mean)'
+
+. local N_smc = `r(N)'
+
+. local var_smc = `r(Var)'
+
+. qui sum smoke if hs 
+
+. local mn_hs = `r(mean)'
+
+. local N_hs = `r(N)'
+
+. local var_hs = `r(Var)'
+
+. 
+. * note1: if you calc. the variance of the indicator variable as mu(1-mu), there will be small discrepancies due to the rounding error. The method below is more precise because it's not using the rounded mean to calc. the variance
+. * note2: we are conducting the test without assuming equal variances. This requires using Satterthwaite's approximation for degrees of freedom 
+. 
+. *** calc. t-stat
+. local t = (`mn_smc' - `mn_hs')/sqrt((`var_smc'/`N_smc') + (`var_hs'/`N_hs'))
+
+. 
+. *** calc. Satterthwaite's approximation for degrees of freedom 
+. local satter_df = ((`var_smc'/`N_smc') + (`var_hs'/`N_hs'))^2/(((`var_smc'/`N_smc')^2/(`N_smc'-1)) + ((`var_hs'/`N_hs')^2/(`N_hs'-1)))
+
+. di "`satter_df'"
+537.0553501319221
+
+. 
+. *** calc. the p-value 
+. local p = 2*(1-t(`satter_df',abs(`t')))
+
+. 
+. di "Two-Sample t-test: Unequal Variances"
+Two-Sample t-test: Unequal Variances
+
+. di "t-stat: `t'"
+t-stat: -2.667290834174826
+
+. di "Satterthwaite's approx. df: `satter_df'"
+Satterthwaite's approx. df: 537.0553501319221
+
+. di "p-value: `p'"
+p-value: .0078772987186677
+
+. 
+. * USING STATA'S BUILT-IN FUNCTION: ttest 
+. ttest smoke, by(smc) unequal reverse
+
+Two-sample t test with unequal variances
+------------------------------------------------------------------------------
+   Group |     Obs        Mean    Std. err.   Std. dev.   [95% conf. interval]
+---------+--------------------------------------------------------------------
+       1 |     325    .3138462    .0257808    .4647703    .2631272    .3645651
+       0 |     259    .4208494    .0307361    .4946513    .3603238    .4813751
+---------+--------------------------------------------------------------------
+Combined |     584    .3613014    .0198952    .4807895    .3222264    .4003764
+---------+--------------------------------------------------------------------
+    diff |           -.1070033    .0401168               -.1858084   -.0281981
+------------------------------------------------------------------------------
+    diff = mean(1) - mean(0)                                      t =  -2.6673
+H0: diff = 0                     Satterthwaite's degrees of freedom =  537.055
+
+    Ha: diff < 0                 Ha: diff != 0                 Ha: diff > 0
+ Pr(T < t) = 0.0039         Pr(|T| > |t|) = 0.0079          Pr(T > t) = 0.9961
+
+. 
+. *-----------------------------
+. * ASSUMING EQUAL VARIANCE
+. *-----------------------------
+. * alternatively, we can use regression to test for mean differences across groups. However, note that regression is implicitly assuming equivalent variances across groups.
+. * the two tests are asymptotically equivalent, but will result in minor differences in small samples  
+. 
+. * MANUAL CALCULATIONS 
+. *** using the pooled variance estimator 
+. *** calc. t-stat
+. local t_reg = (`mn_smc' - `mn_hs')/sqrt(((1/(`N_smc'+`N_hs'-2))*(((`N_smc'-1)*`var_smc') + ((`N_hs'-1)*`var_hs')))*((1/`N_smc')+ (1/`N_hs')))
+
+. di "`t_reg'"
+-2.68614837861463
+
+. 
+. *** calc. df 
+. local df = `N_smc' + `N_hs' - 2
+
+. 
+. *** calc. p-value 
+. local p_reg = 2*(1-t(`df',abs(`t_reg')))
+
+. 
+. di "Two-Sample t-test: Equal Variances (Pooled Variance Estimator)"
+Two-Sample t-test: Equal Variances (Pooled Variance Estimator)
+
+. di "t-stat: `t_reg'"
+t-stat: -2.68614837861463
+
+. di "df: `df'"
+df: 582
+
+. di "p-value: `p_reg'"
+p-value: .0074344624380733
+
+. 
+. * REGRESSION ESTIMATE 
+. reg smoke smc 
+
+      Source |       SS           df       MS      Number of obs   =       584
+-------------+----------------------------------   F(1, 582)       =      7.22
+       Model |  1.65030552         1  1.65030552   Prob > F        =    0.0074
+    Residual |  133.115105       582  .228720112   R-squared       =    0.0122
+-------------+----------------------------------   Adj R-squared   =    0.0105
+       Total |  134.765411       583  .231158509   Root MSE        =    .47825
+
+------------------------------------------------------------------------------
+       smoke | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         smc |  -.1070033   .0398352    -2.69   0.007    -.1852415    -.028765
+       _cons |   .4208494   .0297168    14.16   0.000     .3624842    .4792147
+------------------------------------------------------------------------------
+
+. 
+. * USING STATA'S BUILT-IN FUNCTION: ttest 
+. 
+. * t-test assuming equal variances
+. ttest smoke, by(smc) reverse
+
+Two-sample t test with equal variances
+------------------------------------------------------------------------------
+   Group |     Obs        Mean    Std. err.   Std. dev.   [95% conf. interval]
+---------+--------------------------------------------------------------------
+       1 |     325    .3138462    .0257808    .4647703    .2631272    .3645651
+       0 |     259    .4208494    .0307361    .4946513    .3603238    .4813751
+---------+--------------------------------------------------------------------
+Combined |     584    .3613014    .0198952    .4807895    .3222264    .4003764
+---------+--------------------------------------------------------------------
+    diff |           -.1070033    .0398352               -.1852415    -.028765
+------------------------------------------------------------------------------
+    diff = mean(1) - mean(0)                                      t =  -2.6861
+H0: diff = 0                                     Degrees of freedom =      582
+
+    Ha: diff < 0                 Ha: diff != 0                 Ha: diff > 0
+ Pr(T < t) = 0.0037         Pr(|T| > |t|) = 0.0074          Pr(T > t) = 0.9963
+
+. 
+. log close two_sample_ttest
+      name:  two_sample_ttest
+       log:  C:\Users\michael.baker\Documents\ss368\ss368-fall2026\classroom-materials/output/logs/two_sample_ttest.log
+  log type:  text
+ closed on:   1 Sep 2026, 08:49:18
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

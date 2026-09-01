@@ -1,0 +1,410 @@
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  linear_regression
+       log:  C:\Users\michael.baker\Documents\ss368\ss368-fall2026\classroom-materials/output/logs/linear_regression.log
+  log type:  text
+ opened on:  25 Aug 2026, 06:57:25
+
+. 
+. *--------------------------------------
+. * MANUALLY CALCULATE COEFFICIENT ESTIMATES 
+. *--------------------------------------
+. 
+. use "https://raw.githubusercontent.com/ss368-fall-2026/classroom-materials/main/data/jw_datasets/WAGE1.DTA", clear
+
+. 
+. * calc. covariance 
+. corr educ wage, cov
+(obs=526)
+
+             |     educ     wage
+-------------+------------------
+        educ |  7.66749
+        wage |  4.15086  13.6389
+
+
+. *** store as a local macro to use later 
+. local covariance = `r(cov_12)'
+
+. 
+. *** calc. mean and variance of education
+. sum educ,d
+
+                     years of education
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            4              0
+ 5%            8              0
+10%            9              2       Obs                 526
+25%           12              3       Sum of wgt.         526
+
+50%           12                      Mean           12.56274
+                        Largest       Std. dev.      2.769022
+75%           14             18
+90%           16             18       Variance       7.667485
+95%           17             18       Skewness      -.6195741
+99%           18             18       Kurtosis       4.884245
+
+. local mean_educ = `r(mean)'
+
+. local variance_educ = `r(Var)'
+
+. 
+. *** calc. mean of wage
+. qui sum wage
+
+. local mean_wage = `r(mean)'
+
+. 
+. * manually calculate beta_hat and intercept
+. 
+. *** beta_hat = cov(educ, wage)/var(educ)
+. local beta_hat = `covariance'/`variance_educ'
+
+. 
+. *** formatting for display purposes 
+. local f_beta_hat = string(round(`covariance'/`variance_educ', .001),"%9.3fc")
+
+. di "Slope Coefficient (Beta Hat): `f_beta_hat'"
+Slope Coefficient (Beta Hat): 0.541
+
+. 
+. *** intercept = (mn of wage) - `beta_hat'*(mean of educ)
+. local intercept = `mean_wage'-`beta_hat'*`mean_educ'
+
+. 
+. *** formatting for display purposes 
+. local f_intercept = string(round(`mean_wage'-`beta_hat'*`mean_educ', .001),"%9.3fc")
+
+. di "Intercept: `f_intercept'"
+Intercept: -0.905
+
+. 
+. * calc. the residuals/prediction errors (u_hat)
+. gen u_hat = wage - `intercept' - `beta_hat'*educ 
+
+. 
+. * calc. the sum of squared residuals (SSR)
+. egen ssr = total(u_hat^2)
+
+. 
+. * calc. the std. error of the slope coefficient 
+. *** get number of observations 
+. qui count 
+
+. local N = `r(N)'
+
+. 
+. *** est. the population variance using the residuals  
+. local pop_variance_est = (1/(`N'-2))*ssr
+
+. 
+. *** get the standard deviation of indep. var.
+. qui sum educ
+
+. local sd_educ = `r(sd)'
+
+. 
+. local se_beta_hat = sqrt(1/(`N'-1))*sqrt(`pop_variance_est')/`sd_educ'
+
+. local f_se_beta_hat = string(round(`se_beta_hat', .001),"%9.3fc")
+
+. di "Standard Error (Beta Hat): `f_se_beta_hat'"
+Standard Error (Beta Hat): 0.053
+
+. 
+. * calc. the R-squared 
+. 
+. *** calculate the sum of squares total (SST)
+. egen sst = total((wage - `mean_wage')^2)
+
+. 
+. *** calc. R-squared: 1 - (ssr/sst)
+. local r2 = 1-(ssr/sst)
+
+. local f_r2 = string(round(`r2', .001),"%9.3fc")
+
+. 
+. di "R-squared: `f_r2'"
+R-squared: 0.165
+
+. 
+. di "Summary"
+Summary
+
+. di "Slope Coefficient (Beta Hat): `f_beta_hat'"
+Slope Coefficient (Beta Hat): 0.541
+
+. di "Standard Error (Beta Hat): `f_se_beta_hat'"
+Standard Error (Beta Hat): 0.053
+
+. di "Intercept: `f_intercept'"
+Intercept: -0.905
+
+. di "R-squared: `f_r2'"
+R-squared: 0.165
+
+. 
+. * check against built-in regression function 
+. reg wage educ 
+
+      Source |       SS           df       MS      Number of obs   =       526
+-------------+----------------------------------   F(1, 524)       =    103.36
+       Model |  1179.73204         1  1179.73204   Prob > F        =    0.0000
+    Residual |  5980.68225       524  11.4135158   R-squared       =    0.1648
+-------------+----------------------------------   Adj R-squared   =    0.1632
+       Total |  7160.41429       525  13.6388844   Root MSE        =    3.3784
+
+------------------------------------------------------------------------------
+        wage | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+        educ |   .5413593    .053248    10.17   0.000     .4367534    .6459651
+       _cons |  -.9048516   .6849678    -1.32   0.187    -2.250472    .4407687
+------------------------------------------------------------------------------
+
+. *** everything checks 
+. 
+. * labels
+. qui mylabels -2(2)30, myscale(@) local(ylabels)
+
+. qui mylabels -2(1)30, myscale(@) local(ymlabels)
+
+. 
+. qui mylabels 0(2)18, myscale(@) local(xlabels)
+
+. qui mylabels 0(1)18, myscale(@) local(xmlabels)
+
+. 
+. * make scatterplot of wage and education
+. scatter wage educ, mcolor(gs8) msize(tiny) title("Scatter Plot of Wages and Education") ytitle("Avg. Hourly Earnings") ylabel(`ylabels', angle(0)) ymtick(`ymlabels') xtitle("Years of Education") xlabel(`xlabels') xmtick(`xmlabels') xline(0, lcolor(bl
+> ack) lpattern(dash)) legend(off) graphregion(color(white))
+
+. qui graph export "${output}/figures/scatter_wage_educ.svg", width(1600) fontface("Times New Roman") replace
+
+. 
+. * make scatterplot of wage and education - with line of best fit 
+. twoway scatter wage educ, mcolor(gs8) msize(tiny) || lfit wage educ, lcolor(red) ||, title("Line of Best Fit") ytitle("Avg. Hourly Earnings") ylabel(`ylabels', angle(0)) ymtick(`ymlabels') xtitle("Years of Education") xlabel(`xlabels') xmtick(`xmlabe
+> ls') xline(0, lcolor(black) lpattern(dash)) legend(off) graphregion(color(white))
+
+. qui graph export "${output}/figures/scatter_wage_educ_reg_line.svg", width(1600) fontface("Times New Roman") replace
+
+. 
+. *--------------------------------------
+. * GENERATE DATA
+. *--------------------------------------
+. 
+. * context: we want to estimate the effect of earnings on body weight 
+. * population: workers in a us county 
+. 
+. * generate data 
+. clear 
+
+. set obs 100000
+Number of observations (_N) was 0, now 100,000.
+
+. 
+. set seed 730
+
+. 
+. * generate earnings variable - based on approx. earnings in the U.S. 
+. gen ln_earnings = rnormal(10.7, 0.7)
+
+. gen earnings = exp(ln_earnings)
+
+. 
+. sum earnings,d 
+
+                          earnings
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     8827.811       1445.399
+ 5%     14071.01       1669.665
+10%     18128.65       2594.196       Obs             100,000
+25%     27675.07       2704.074       Sum of wgt.     100,000
+
+50%     44519.94                      Mean           56728.65
+                        Largest       Std. dev.      45394.82
+75%     71192.64       739460.9
+90%       108444       815695.5       Variance       2.06e+09
+95%     139563.1        1154088       Skewness       3.139545
+99%     226765.4        1232559       Kurtosis       26.74083
+
+. sum ln_earnings,d 
+
+                         ln_earnings
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     9.085662       7.276141
+ 5%     9.551872       7.420378
+10%     9.805249       7.861032       Obs             100,000
+25%     10.22829       7.902515       Sum of wgt.     100,000
+
+50%     10.70369                      Mean           10.70124
+                        Largest       Std. dev.      .6992314
+75%     11.17314       13.51368
+90%     11.59399        13.6118       Variance       .4889245
+95%     11.84627       13.95882       Skewness       .0016686
+99%     12.33167        14.0246       Kurtosis       3.015693
+
+. local sd_ln_earnings = `r(sd)'
+
+. 
+. * generate idiosyncratic disturbance 
+. gen u = rnormal(0,18)
+
+. 
+. * outcome = body weight 
+. gen body_wt = 100 + 8*ln_earnings + u 
+
+. 
+. sum body_wt,d
+
+                           body_wt
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     141.9608       103.7339
+ 5%     154.8202       105.1558
+10%     161.6011       109.0349       Obs             100,000
+25%     173.0269       109.2264       Sum of wgt.     100,000
+
+50%     185.8327                      Mean            185.775
+                        Largest       Std. dev.      18.85013
+75%     198.3783       261.8079
+90%     209.8823       262.6538       Variance       355.3272
+95%     216.8396       269.4028       Skewness       .0061556
+99%     229.6983        274.558       Kurtosis       3.015298
+
+. 
+. replace earnings = earnings/1000
+(100,000 real changes made)
+
+. 
+. *--------------------------------------
+. * CREATE HISTOGRAMS
+. *--------------------------------------
+. 
+. qui mylabels 0(250)1250, myscale(@) local(xlabels) format("%9.0fc")
+
+. 
+. histogram earnings, density color(gs8) gap(10) title("Annual Earnings") ylabel(, angle(0)) xtitle("Earnings (Thousands)") xlabel(`xlabels') ytitle("Density") legend(off) graphregion(color(white)) 
+(bin=50, start=1.445399, width=24.622266)
+
+. qui graph export "${output}/figures/histogram_earnings.svg", width(1600) fontface("Times New Roman") replace
+
+. 
+. histogram ln_earnings, density color(gs8) gap(10) title("Log(Annual Earnings)") ylabel(, angle(0)) xtitle("Log(Annual Earnings)") ytitle("Density") legend(off) graphregion(color(white)) 
+(bin=50, start=7.2761407, width=.13496924)
+
+. qui graph export "${output}/figures/histogram_ln_earnings.svg", width(1600) fontface("Times New Roman") replace
+
+. 
+. histogram body_wt, density color(gs8) gap(10) title("Body Weight (lbs)") ylabel(, angle(0)) xtitle("Body Weight (lbs)") ytitle("Density") legend(off) graphregion(color(white)) 
+(bin=50, start=103.73386, width=3.4164825)
+
+. qui graph export "${output}/figures/histogram_body_wt.svg", width(1600) fontface("Times New Roman") replace
+
+. 
+. *--------------------------------------
+. * REGRESSION PLOTS
+. *--------------------------------------
+. 
+. * visualize regression
+. qui mylabels 75(50)275, myscale(@) local(ylabels)
+
+. qui mylabels 75(25)300, myscale(@) local(ymlabels)
+
+. 
+. qui mylabels 0(2)16, myscale(@) local(xlabels)
+
+. qui mylabels 0(1)16, myscale(@) local(xmlabels)
+
+. 
+. scatter body_wt ln_earnings, mcolor(gs8) msize(tiny) title("Scatter Plot of Body Weight and Log(earnings)") ytitle("Body Weight (lbs.)") ylabel(`ylabels', angle(0)) ymtick(`ymlabels') xtitle("Log(earnings)") xlabel(`xlabels') xmtick(`xmlabels') xline
+> (0, lcolor(black) lpattern(dash)) legend(off) graphregion(color(white))
+
+. qui graph export "${output}/figures/scatter_body_wt_earnings.svg", width(1600) fontface("Times New Roman") replace
+
+. 
+. twoway scatter body_wt ln_earnings, mcolor(gs8) msize(tiny) || lfit body_wt ln_earnings, lcolor(red) range(0 16) ||, title("Line of Best Fit") ytitle("Body Weight") ylabel(`ylabels', angle(0)) ymtick(`ymlabels') xtitle("Log(earnings)") xlabel(`xlabel
+> s') xmtick(`xmlabels') xline(0, lcolor(black) lpattern(dash)) legend(off) graphregion(color(white))
+
+. qui graph export "${output}/figures/reg_body_wt_earnings.svg", width(1600) fontface("Times New Roman") replace
+
+. 
+. reg body_wt ln_earnings 
+
+      Source |       SS           df       MS      Number of obs   =   100,000
+-------------+----------------------------------   F(1, 99998)     =   9644.72
+       Model |  3125605.46         1  3125605.46   Prob > F        =    0.0000
+    Residual |  32406763.1    99,998  324.074113   R-squared       =    0.0880
+-------------+----------------------------------   Adj R-squared   =    0.0880
+       Total |  35532368.6    99,999  355.327239   Root MSE        =    18.002
+
+------------------------------------------------------------------------------
+     body_wt | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+ ln_earnings |    7.99555   .0814148    98.21   0.000     7.835978    8.155122
+       _cons |   100.2127   .8730974   114.78   0.000     98.50142    101.9239
+------------------------------------------------------------------------------
+
+. local pop_beta = _b[ln_earnings]
+
+. 
+. * save the dta as a temporary file to enable loop below 
+. tempfile raw_data 
+
+. save `raw_data'
+file C:\Users\MICHAE~1.BAK\AppData\Local\Temp\ST_3ccc_000001.tmp saved as .dta format
+
+. 
+. *--------------------------------------
+. * SAMPLING VARIANCE VISUALS
+. *--------------------------------------
+. 
+. local num_samples = 10000
+
+. 
+. foreach sample_size in 1000 5000 {
+  2.         
+.                 set seed 403
+  3.                 
+.                 matrix beta1_est_`num_samples' = J(`num_samples', 1, .)
+  4.                 
+.                 use `raw_data', clear 
+  5.                 
+.                 forvalues i = 1/`num_samples' { 
+  6.                         preserve 
+  7.                                 
+.                                 *** draw a random sample without replacement 
+.                                 qui sample `sample_size', count
+  8.                                 
+.                                 qui reg body_wt ln_earnings 
+  9.                                 
+.                                 matrix beta1_est_`num_samples'[`i', 1] = _b[ln_earnings] 
+ 10.                         
+.                         restore 
+ 11.                 }
+ 12.         
+.                 * convert matrix to dta
+.                 clear 
+ 13.                 qui svmat beta1_est_`num_samples', names(beta)
+ 14. 
+.                 qui sum beta1
+ 15.                 local e_beta1 = `r(mean)'
+ 16. 
+.                 * plot histogram
+.                 local f_e_beta1 = string(round(`e_beta1',.001), "%09.3fc")
+ 17.                 local f_pop_beta = string(round(`pop_beta',.001), "%09.3fc")
+ 18.                 local f_sample_size = string(`sample_size', "%9.0fc")
+ 19.                 local f_num_samples = string(`num_samples', "%9.0fc")
+ 20.                 twoway histogram beta1, density color(gs8) gap(10) ||, title("Distribution of Estimates Across Samples") subtitle("N = `f_sample_size', Samples = `f_num_samples'") ylabel(, angle(0)) xtitle("Beta Estimates") ytitle("Density") legen
+> d(off) graphregion(color(white)) caption("Population Beta: `f_pop_beta'" "Avg. Beta Across Samples: `f_e_beta1'")
+ 21.                 qui graph export "${output}/figures/sampling_variation_ex_`num_samples'_samples_size_`sample_size'.svg", width(1600) fontface("Times New Roman") replace
+ 22. }
+
+. 
+. log close linear_regression
+      name:  linear_regression
+       log:  C:\Users\michael.baker\Documents\ss368\ss368-fall2026\classroom-materials/output/logs/linear_regression.log
+  log type:  text
+ closed on:  25 Aug 2026, 07:29:17
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
