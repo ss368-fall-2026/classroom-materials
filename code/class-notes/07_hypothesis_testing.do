@@ -18,7 +18,7 @@ global main "C:\Users\michael.baker\Documents\ss368\ss368-fall2026\classroom-mat
 cd "${main}"
 
 global output  "${main}/output"
-global logs    "${output}/figures/logs"   
+global logs    "${output}/logs"   
 
 qui cap log close hypothesis_testing
 log using "${logs}/hypothesis_testing.log", text replace name(hypothesis_testing)
