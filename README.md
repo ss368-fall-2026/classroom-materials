@@ -56,6 +56,7 @@ In the Extensions sidebar icon, install:
 
 1. **Stata Enhanced** — syntax highlighting for Stata code
 2. **Markdown Preview Enhanced** — lets you preview `.md` files (like this one) as rendered/PDF output
+3. **vscode-pdf** (by tomoki1207) — opens `.pdf` files directly in a VS Code tab
 
 ### 2D. Stata Hotkeys in VS Code
 
@@ -78,6 +79,14 @@ The files you need are in this repository, at [`docs/runstata_vscode`](docs/runs
      cd "C:\runstata_vscode"; powershell -ExecutionPolicy Bypass -File .\startup.ps1
      ```
 4. `startup.ps1` installs a shortcut that relaunches the hotkeys at every login (a few minutes' delay is normal), so you only need to do this once per computer.
+5. Read the last line the script prints — it tells you whether the hotkeys actually stayed running:
+   - **Green** — `Installed to ... Hotkeys are live.` You're done.
+   - **Red** — `... is NOT running.` Antivirus/SmartScreen killed the hotkey program right after it launched (common on managed/school laptops). Fix it like this:
+     1. Open **Windows Security** > **Virus & threat protection** > **Protection history**.
+     2. Look for an entry mentioning `runstata_vscode_hotkeys.exe` (it may say blocked, quarantined, or removed).
+     3. Click that entry and choose **Allow on device** (or **Restore**) if given the option.
+     4. Re-run the command from step 2 above.
+     5. If no matching entry appears in Protection history, or the block comes back after you allow it, the machine may be locked down by IT policy. [Email me](mailto:michael.baker@westpoint.edu) with a screenshot of the terminal output and, if you found one, the Protection history entry.
 
 **Using the hotkeys:** with Stata open and a `.do` file focused in VS Code —
 
