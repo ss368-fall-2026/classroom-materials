@@ -40,4 +40,15 @@ $lnk.Save()
 Get-Process -Name "runstata_vscode_hotkeys" -ErrorAction SilentlyContinue | Stop-Process -Force
 Start-Process $HotkeyExe
 
-Write-Host "Installed to $InstallDir and added to Startup. Hotkeys are live." -ForegroundColor Green
+# Confirm it actually stayed running -- antivirus/SmartScreen on managed
+# machines can silently kill an unsigned, keystroke-sending exe right after
+# launch, which would otherwise leave a false "success" message on screen.
+Start-Sleep -Seconds 2
+if (Get-Process -Name $ProcName -ErrorAction SilentlyContinue) {
+    Write-Host "Installed to $InstallDir and added to Startup. Hotkeys are live." -ForegroundColor Green
+} else {
+    Write-Host "Shortcut created, but $ProcName is NOT running." -ForegroundColor Red
+    Write-Host "It was likely blocked or closed by antivirus/SmartScreen right after launch." -ForegroundColor Red
+    Write-Host "Check Windows Security > Protection history for a blocked/quarantined item," -ForegroundColor Yellow
+    Write-Host "or ask IT to allow $InstallDir, then try running startup.ps1 again." -ForegroundColor Yellow
+}
