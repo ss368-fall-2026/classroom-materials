@@ -21,6 +21,9 @@
 # CODE — track all code files
 #---------------------------------------------------------------------
 !code/**
+# but never track 26-1, wherever it lives under code/
+code/26-1/
+code/**/26-1/
 
 #---------------------------------------------------------------------
 # DOCS — track everything
@@ -31,10 +34,10 @@
 # DATA — track nothing by default; allow only codebooks
 #---------------------------------------------------------------------
 # only jw datasets 
-!code/jw_datasets/**
+!data/jw_datasets/**
 
 #---------------------------------------------------------------------
-# OUTPUT — track figures and tables, ignore logs
+# OUTPUT — track figures, tables, and logs
 #---------------------------------------------------------------------
 !output/figures/**/*.pdf
 !output/figures/**/*.png
